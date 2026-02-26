@@ -6,7 +6,7 @@
 
 ## 🔴 Live Demo
 
-👉 **[Try it here →]**
+👉 **[Try it here →]** https://marvellousagboola.github.io/grc-control-mapper/
 
 ---
 
