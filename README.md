@@ -1,6 +1,6 @@
 # 🛡️ ISO 27001:2022 Multi-Framework Control Mapper
 
-> An interactive web tool that maps all **93 ISO 27001:2022 Annex A controls** to **NIST CSF 2.0**, **SOC 2 TSC**, and **PCI-DSS v4.0** — built by a GRC analyst, for GRC analysts.
+> An interactive web tool that maps all **93 ISO 27001:2022 Annex A controls** to **NIST CSF 2.0**, **SOC 2 TSC**, and **PCI-DSS v4.0** — built by Victor Agboola, for GRC analysts.
 
 ---
 
