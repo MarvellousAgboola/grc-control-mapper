@@ -1,0 +1,688 @@
+<!DOCTYPE >
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GRC Control Mapper — ISO 27001:2022</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c10;
+    --surface: #111318;
+    --surface2: #181c24;
+    --border: #1e2330;
+    --accent: #00e5a0;
+    --accent2: #3b82f6;
+    --accent3: #f59e0b;
+    --accent4: #ef4444;
+    --text: #e8eaf0;
+    --muted: #6b7280;
+    --nist: #3b82f6;
+    --soc2: #a855f7;
+    --pci: #f59e0b;
+    --iso: #00e5a0;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* GRID BG */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,229,160,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,160,0.03) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* HEADER */
+  header {
+    position: relative;
+    z-index: 10;
+    padding: 48px 48px 0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    flex-wrap: wrap;
+    animation: fadeDown 0.6s ease both;
+  }
+  .header-left {}
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(0,229,160,0.08);
+    border: 1px solid rgba(0,229,160,0.2);
+    color: var(--accent);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    padding: 4px 12px;
+    border-radius: 99px;
+    letter-spacing: 0.08em;
+    margin-bottom: 16px;
+  }
+  .badge::before { content: '●'; font-size: 8px; animation: pulse 2s infinite; }
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(28px, 4vw, 52px);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+  }
+  h1 span { color: var(--accent); }
+  .subtitle {
+    margin-top: 10px;
+    color: var(--muted);
+    font-size: 15px;
+    font-weight: 300;
+    max-width: 480px;
+    line-height: 1.6;
+  }
+  .stats-row {
+    display: flex;
+    gap: 32px;
+    margin-top: 24px;
+    flex-wrap: wrap;
+  }
+  .stat { display:flex; flex-direction:column; gap:2px; }
+  .stat-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 28px;
+    font-weight: 500;
+    color: var(--accent);
+  }
+  .stat-label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+
+  /* LEGEND */
+  .legend {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-top: 12px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .legend-dot { width:8px; height:8px; border-radius:2px; }
+
+  /* CONTROLS */
+  .controls {
+    position: relative;
+    z-index: 10;
+    padding: 32px 48px;
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    align-items: center;
+    animation: fadeDown 0.6s 0.1s ease both;
+  }
+  .search-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 240px;
+    max-width: 400px;
+  }
+  .search-wrap svg {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    width: 16px; height: 16px;
+  }
+  input[type=text] {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 11px 14px 11px 40px;
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  input[type=text]:focus { border-color: var(--accent); }
+  input[type=text]::placeholder { color: var(--muted); }
+
+  select {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 11px 16px;
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.2s;
+    appearance: none;
+    padding-right: 36px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+  }
+  select:focus { border-color: var(--accent); }
+  select option { background: #1a1d26; }
+
+  .filter-btns { display:flex; gap:8px; flex-wrap:wrap; }
+  .filter-btn {
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: 'DM Mono', monospace;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--muted);
+    transition: all 0.2s;
+    letter-spacing: 0.03em;
+  }
+  .filter-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .filter-btn.active { background: rgba(0,229,160,0.1); border-color: var(--accent); color: var(--accent); }
+
+  /* RESULTS COUNT */
+  .results-bar {
+    position: relative;
+    z-index: 10;
+    padding: 0 48px 16px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .results-bar span { color: var(--accent); }
+
+  /* TABLE */
+  .table-wrap {
+    position: relative;
+    z-index: 10;
+    padding: 0 48px 64px;
+    animation: fadeUp 0.6s 0.2s ease both;
+  }
+  .table-container {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    overflow-x: auto;
+  }
+  table { width: 100%; border-collapse: collapse; min-width: 900px; }
+  thead tr {
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+  th {
+    padding: 14px 20px;
+    text-align: left;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  th:first-child { color: var(--accent); }
+
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+    cursor: pointer;
+  }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: rgba(255,255,255,0.02); }
+  tbody tr.expanded { background: rgba(0,229,160,0.03); }
+
+  td {
+    padding: 16px 20px;
+    font-size: 13.5px;
+    vertical-align: top;
+    line-height: 1.5;
+  }
+  td:first-child {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--accent);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .control-name {
+    font-weight: 500;
+    color: var(--text);
+    font-size: 14px;
+  }
+  .control-domain {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* FRAMEWORK CELLS */
+  .fw-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .fw-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 8px;
+    border-radius: 5px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    width: fit-content;
+  }
+  .fw-tag.nist { background: rgba(59,130,246,0.12); color: #60a5fa; border: 1px solid rgba(59,130,246,0.2); }
+  .fw-tag.soc2 { background: rgba(168,85,247,0.12); color: #c084fc; border: 1px solid rgba(168,85,247,0.2); }
+  .fw-tag.pci  { background: rgba(245,158,11,0.12); color: #fbbf24; border: 1px solid rgba(245,158,11,0.2); }
+  .fw-tag.na   { background: rgba(107,114,128,0.1); color: var(--muted); border: 1px solid rgba(107,114,128,0.15); }
+
+  /* EXPAND ROW */
+  .expand-row td {
+    padding: 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .expand-content {
+    display: none;
+    padding: 20px 24px 24px;
+    background: rgba(0,229,160,0.025);
+    border-top: 1px solid rgba(0,229,160,0.1);
+  }
+  .expand-content.open { display: block; animation: fadeUp 0.25s ease; }
+  .expand-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+    margin-top: 12px;
+  }
+  .expand-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .expand-card-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .expand-card-title.nist { color: #60a5fa; }
+  .expand-card-title.soc2 { color: #c084fc; }
+  .expand-card-title.pci  { color: #fbbf24; }
+  .expand-card p { font-size: 12.5px; color: #9ca3af; line-height: 1.6; }
+  .expand-desc { font-size: 13px; color: var(--muted); line-height: 1.7; margin-bottom: 4px; }
+  .expand-title { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+
+  /* CHEVRON */
+  .chevron {
+    display: inline-block;
+    transition: transform 0.2s;
+    font-size: 10px;
+    color: var(--muted);
+    margin-left: 6px;
+  }
+  .expanded .chevron { transform: rotate(180deg); }
+
+  /* EMPTY */
+  .empty {
+    text-align: center;
+    padding: 64px 24px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+  }
+  .empty div { font-size: 32px; margin-bottom: 12px; }
+
+  /* FOOTER */
+  footer {
+    position: relative;
+    z-index: 10;
+    text-align: center;
+    padding: 24px 48px 40px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    border-top: 1px solid var(--border);
+  }
+  footer span { color: var(--accent); }
+
+  /* ANIMATIONS */
+  @keyframes fadeDown { from { opacity:0; transform: translateY(-16px); } to { opacity:1; transform: none; } }
+  @keyframes fadeUp   { from { opacity:0; transform: translateY(16px);  } to { opacity:1; transform: none; } }
+  @keyframes pulse    { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  /* HIGHLIGHT */
+  mark { background: rgba(0,229,160,0.25); color: var(--accent); border-radius: 2px; padding: 0 2px; }
+
+  @media (max-width: 768px) {
+    header, .controls, .table-wrap, .results-bar { padding-left: 20px; padding-right: 20px; }
+    .expand-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <div class="badge">GRC CONTROL MAPPER v2.0</div>
+    <h1>ISO 27001:2022<br><span>Multi-Framework</span> Mapper</h1>
+    <p class="subtitle">Map ISO 27001:2022 Annex A controls to NIST CSF 2.0, SOC 2 TSC, and PCI-DSS v4.0 in one view. Built for GRC analysts.</p>
+    <div class="stats-row">
+      <div class="stat"><span class="stat-num" id="totalControls">93</span><span class="stat-label">ISO Controls</span></div>
+      <div class="stat"><span class="stat-num">4</span><span class="stat-label">Frameworks</span></div>
+      <div class="stat"><span class="stat-num" id="domainCount">4</span><span class="stat-label">Domains</span></div>
+    </div>
+  </div>
+  <div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#00e5a0"></div>ISO 27001:2022</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#3b82f6"></div>NIST CSF 2.0</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#a855f7"></div>SOC 2 TSC</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div>PCI-DSS v4.0</div>
+    </div>
+  </div>
+</header>
+
+<div class="controls">
+  <div class="search-wrap">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input type="text" id="searchInput" placeholder="Search controls, domains, references…">
+  </div>
+  <select id="domainFilter">
+    <option value="">All Domains</option>
+    <option>Organizational</option>
+    <option>People</option>
+    <option>Physical</option>
+    <option>Technological</option>
+  </select>
+  <div class="filter-btns">
+    <button class="filter-btn active" data-fw="all">All</button>
+    <button class="filter-btn" data-fw="nist">NIST CSF</button>
+    <button class="filter-btn" data-fw="soc2">SOC 2</button>
+    <button class="filter-btn" data-fw="pci">PCI-DSS</button>
+  </div>
+</div>
+
+<div class="results-bar">
+  Showing <span id="countDisplay">—</span> controls
+</div>
+
+<div class="table-wrap">
+  <div class="table-container">
+    <table id="mainTable">
+      <thead>
+        <tr>
+          <th>Control ID</th>
+          <th>Control Name &amp; Domain</th>
+          <th><span style="color:#60a5fa">NIST CSF 2.0</span></th>
+          <th><span style="color:#c084fc">SOC 2 TSC</span></th>
+          <th><span style="color:#fbbf24">PCI-DSS v4.0</span></th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+    <div class="empty" id="emptyState" style="display:none">
+      <div>🔍</div>
+      No controls match your filters
+    </div>
+  </div>
+</div>
+
+<footer>
+  Built by <span>GRC Analyst</span> · ISO 27001:2022 × NIST CSF 2.0 × SOC 2 × PCI-DSS v4.0 · <span>AI-Assisted Mapping</span>
+</footer>
+
+<script>
+const controls = [
+  // ORGANIZATIONAL CONTROLS (A.5)
+  { id:"A.5.1",  name:"Policies for Information Security",       domain:"Organizational", nist:["GV.PO-01","GV.PO-02"], nist_notes:"Establish and communicate cybersecurity policy aligned to organizational mission", soc2:["CC1.4","CC2.2"], soc2_notes:"COSO principle: demonstrates commitment to competence; communicates internally", pci:["12.1.1","12.1.2"], pci_notes:"Establish, publish, maintain and disseminate a security policy", desc:"Defines the approach to managing information security through documented policies." },
+  { id:"A.5.2",  name:"Information Security Roles & Responsibilities", domain:"Organizational", nist:["GV.RR-01","GV.RR-02"], nist_notes:"Organizational roles for cybersecurity are established and communicated", soc2:["CC1.3","CC1.4"], soc2_notes:"Board and management establish structures, reporting lines and authorities", pci:["12.4.1"], pci_notes:"Roles and responsibilities for protection of cardholder data defined and assigned", desc:"Assigns ownership of information security responsibilities across the organization." },
+  { id:"A.5.3",  name:"Segregation of Duties",                   domain:"Organizational", nist:["PR.AA-05"], nist_notes:"Access to assets is managed consistent with risk including SoD", soc2:["CC6.3"], soc2_notes:"Role-based access control implemented to prevent unauthorized access", pci:["7.1.2"], pci_notes:"Access to system components and cardholder data is appropriately restricted", desc:"Prevents fraud and errors by dividing responsibilities among individuals." },
+  { id:"A.5.4",  name:"Management Responsibilities",              domain:"Organizational", nist:["GV.RR-03"], nist_notes:"Cybersecurity roles are coordinated and aligned with roles/responsibilities", soc2:["CC1.2","CC1.3"], soc2_notes:"Board demonstrates independence and oversight of internal control development", pci:["12.4.1"], pci_notes:"Executive management establishes responsibility for data protection", desc:"Requires management to actively direct and oversee information security." },
+  { id:"A.5.5",  name:"Contact with Authorities",                domain:"Organizational", nist:["RS.CO-04","RC.CO-04"], nist_notes:"Coordination with stakeholders occurs consistent with response plans", soc2:["CC9.2"], soc2_notes:"The entity monitors third parties and communicates relevant information", pci:["12.10.3"], pci_notes:"Specific personnel are designated to be available to respond to alerts 24/7", desc:"Ensures appropriate relationships with regulatory and law enforcement bodies." },
+  { id:"A.5.6",  name:"Contact with Special Interest Groups",    domain:"Organizational", nist:["ID.RA-06","DE.CM-09"], nist_notes:"Vulnerabilities and threats are identified and documented through external sources", soc2:["CC9.2"], soc2_notes:"Monitors and evaluates changes in third party and other external context", pci:["6.3.2","12.3.3"], pci_notes:"An inventory of bespoke and custom software is maintained", desc:"Maintains awareness of security developments through professional groups." },
+  { id:"A.5.7",  name:"Threat Intelligence",                     domain:"Organizational", nist:["ID.RA-01","ID.RA-02"], nist_notes:"Vulnerabilities in assets are identified, validated, and recorded", soc2:["CC9.2"], soc2_notes:"The entity assesses and responds to risks from external threat intelligence", pci:["6.3.3","12.3.2"], pci_notes:"All system components are protected from known vulnerabilities", desc:"Collects and analyzes threat intelligence to inform security decisions." },
+  { id:"A.5.8",  name:"Information Security in Project Management", domain:"Organizational", nist:["GV.SC-08","PV.PO-01"], nist_notes:"Relevant cybersecurity requirements are included in contracts", soc2:["CC8.1"], soc2_notes:"The entity authorizes, designs, develops or acquires, configures, documents changes", pci:["6.2.1"], pci_notes:"Bespoke and custom software are developed securely", desc:"Integrates security into project management throughout the lifecycle." },
+  { id:"A.5.9",  name:"Inventory of Information & Assets",       domain:"Organizational", nist:["ID.AM-01","ID.AM-02"], nist_notes:"Inventories of hardware, software, and services are maintained", soc2:["CC6.1"], soc2_notes:"Logical access security measures restrict access to information assets", pci:["12.3.1","12.3.4"], pci_notes:"All payment page scripts are managed with an inventory", desc:"Maintains a documented inventory of all information assets." },
+  { id:"A.5.10", name:"Acceptable Use of Assets",                domain:"Organizational", nist:["PR.AA-01","PR.PS-01"], nist_notes:"Identities and credentials are issued, managed, verified and revoked", soc2:["CC6.1","CC6.7"], soc2_notes:"The entity restricts the transmission, movement, and removal of information", pci:["12.3.3"], pci_notes:"Hardware and software technologies are reviewed at least once every 12 months", desc:"Defines rules for acceptable use of information and associated assets." },
+  { id:"A.5.11", name:"Return of Assets",                        domain:"Organizational", nist:["PR.AA-03"], nist_notes:"Remote access to the organization's assets is managed", soc2:["CC6.5"], soc2_notes:"The entity discontinues logical and physical protections when terminated", pci:["8.2.6"], pci_notes:"Inactive accounts are removed or disabled within 90 days", desc:"Ensures assets are returned upon termination of employment or contracts." },
+  { id:"A.5.12", name:"Classification of Information",           domain:"Organizational", nist:["ID.AM-05","PR.DS-01"], nist_notes:"Assets are prioritized based on classification, criticality, and business value", soc2:["CC6.1"], soc2_notes:"The entity identifies and manages the inventory of information assets", pci:["9.4.3"], pci_notes:"All media with cardholder data is protected with appropriate classification", desc:"Classifies information by sensitivity to ensure appropriate protection." },
+  { id:"A.5.13", name:"Labelling of Information",                domain:"Organizational", nist:["PR.DS-01"], nist_notes:"The confidentiality, integrity, and availability of information are protected", soc2:["CC6.1"], soc2_notes:"Logical access security software, infrastructure, and architectures are implemented", pci:["9.4.3"], pci_notes:"Media with cardholder data is labeled to identify content and classification", desc:"Implements labelling procedures consistent with the classification scheme." },
+  { id:"A.5.14", name:"Information Transfer",                    domain:"Organizational", nist:["PR.DS-02","PR.DS-05"], nist_notes:"Data-in-transit is protected; data leakage prevention actions are taken", soc2:["CC6.7"], soc2_notes:"The entity restricts transmission, movement and removal of information", pci:["4.2.1","4.2.2"], pci_notes:"Strong cryptography is used to safeguard PANs during transmission", desc:"Maintains security when transferring information within and outside the organization." },
+  { id:"A.5.15", name:"Access Control",                          domain:"Organizational", nist:["PR.AA-01","PR.AA-05"], nist_notes:"Identities and credentials are issued, managed; access permissions are managed", soc2:["CC6.1","CC6.2","CC6.3"], soc2_notes:"Access control protects against unauthorized access to information assets", pci:["7.1.1","7.2.1"], pci_notes:"All access to system components and cardholder data is restricted by business need", desc:"Establishes the organization's approach to controlling access to information." },
+  { id:"A.5.16", name:"Identity Management",                     domain:"Organizational", nist:["PR.AA-01","PR.AA-02"], nist_notes:"Identities and credentials are issued, managed, verified, revoked and audited", soc2:["CC6.2"], soc2_notes:"New internal and external users are registered prior to access", pci:["8.2.1","8.2.2"], pci_notes:"All users are assigned a unique ID before allowing access to system components", desc:"Manages the full lifecycle of all identities across the enterprise." },
+  { id:"A.5.17", name:"Authentication Information",              domain:"Organizational", nist:["PR.AA-02"], nist_notes:"Identities are proven and bound to credentials, and asserted in interactions", soc2:["CC6.1","CC6.6"], soc2_notes:"The entity implements controls to prevent and detect inappropriate access", pci:["8.3.1","8.3.2","8.6.1"], pci_notes:"Strong authentication is required for all access to cardholder data", desc:"Controls the allocation and use of authentication credentials." },
+  { id:"A.5.18", name:"Access Rights",                           domain:"Organizational", nist:["PR.AA-05"], nist_notes:"Access to assets is managed, incorporating the principles of least privilege", soc2:["CC6.2","CC6.3"], soc2_notes:"Access is appropriately provisioned, restricted based on role, and removed when no longer needed", pci:["7.2.2","7.2.4","7.2.5"], pci_notes:"Access is approved by authorized personnel, least privilege, removal upon termination", desc:"Provisions, reviews, and revokes access rights to all assets." },
+  { id:"A.5.19", name:"Information Security in Supplier Relationships", domain:"Organizational", nist:["GV.SC-04","GV.SC-06"], nist_notes:"Suppliers and third-party partners are identified, prioritized and assessed", soc2:["CC9.2"], soc2_notes:"The entity assesses and manages risks associated with vendors and business partners", pci:["12.8.1","12.8.2"], pci_notes:"A list of all third-party service providers (TPSPs) with cardholder data access is maintained", desc:"Defines requirements for security in supplier and third-party relationships." },
+  { id:"A.5.20", name:"Addressing Security in Supplier Agreements", domain:"Organizational", nist:["GV.SC-08"], nist_notes:"Relevant cybersecurity requirements are included in contracts with suppliers", soc2:["CC9.2"], soc2_notes:"The entity includes relevant cybersecurity requirements in contracts", pci:["12.8.3","12.8.4"], pci_notes:"Written agreements with TPSPs include acknowledgement that they are responsible for protecting cardholder data", desc:"Establishes security requirements in contracts with suppliers." },
+  { id:"A.5.29", name:"Information Security During Disruption",  domain:"Organizational", nist:["PR.IP-04","RC.RP-01"], nist_notes:"Backups are conducted, maintained and tested; recovery procedures are executed", soc2:["A1.2","A1.3"], soc2_notes:"Environmental protections, software and data backup processes in place", pci:["12.10.5"], pci_notes:"Incident response plan is tested at least once per year", desc:"Maintains an appropriate level of security during disruption." },
+  { id:"A.5.30", name:"ICT Readiness for Business Continuity",   domain:"Organizational", nist:["PR.IP-04","RC.RP-01"], nist_notes:"Recovery plans incorporate lessons learned; backups are maintained", soc2:["A1.2"], soc2_notes:"Environmental protections, software, data backup and recovery processes", pci:["12.10.5"], pci_notes:"Business continuity for the security incident response plan is maintained", desc:"Ensures ICT systems are ready to support business continuity objectives." },
+
+  // PEOPLE CONTROLS (A.6)
+  { id:"A.6.1",  name:"Screening",                               domain:"People", nist:["GV.SC-04"], nist_notes:"Suppliers are identified, prioritized and assessed using a supply chain risk process", soc2:["CC1.4"], soc2_notes:"The entity demonstrates a commitment to attract, develop and retain competent individuals", pci:["12.7.1"], pci_notes:"Personnel with access to cardholder data are screened, within constraints of local laws", desc:"Conducts background verification checks on all candidates for employment." },
+  { id:"A.6.2",  name:"Terms & Conditions of Employment",        domain:"People", nist:["GV.PO-02"], nist_notes:"Cybersecurity roles and responsibilities are coordinated and aligned", soc2:["CC1.4"], soc2_notes:"The entity demonstrates commitment to competence, establishes reporting lines", pci:["12.1.1"], pci_notes:"All security policies and operational procedures are kept current and distributed", desc:"Requires employees and contractors to comply with security policies via employment agreements." },
+  { id:"A.6.3",  name:"Information Security Awareness, Education & Training", domain:"People", nist:["PR.AT-01","PR.AT-02"], nist_notes:"Personnel are provided with awareness and training; privileged users understand responsibilities", soc2:["CC2.2","CC1.4"], soc2_notes:"Internally communicates objectives; demonstrates commitment to competent individuals", pci:["12.6.1","12.6.2","12.6.3"], pci_notes:"Security awareness program is implemented and includes recognition and response to phishing", desc:"Ensures all personnel receive appropriate security awareness and training." },
+  { id:"A.6.4",  name:"Disciplinary Process",                    domain:"People", nist:["GV.PO-02"], nist_notes:"Cybersecurity roles and responsibilities are coordinated", soc2:["CC1.4"], soc2_notes:"The entity demonstrates commitment and holds individuals accountable", pci:["12.1.2"], pci_notes:"Security policies are reviewed at least once every 12 months and updated as needed", desc:"Establishes a formal process to take action against employees committing security violations." },
+  { id:"A.6.5",  name:"Responsibilities After Termination",      domain:"People", nist:["PR.AA-03","PR.AA-05"], nist_notes:"Remote access is managed; access permissions are managed and revoked", soc2:["CC6.2","CC6.5"], soc2_notes:"New and terminated user access is managed; access is removed when no longer needed", pci:["8.2.6"], pci_notes:"Inactive user accounts are removed or disabled within 90 days of inactivity", desc:"Maintains security responsibilities and obligations after employment ends." },
+  { id:"A.6.6",  name:"Confidentiality or NDA Agreements",       domain:"People", nist:["GV.PO-01"], nist_notes:"Organizational cybersecurity policy is established, communicated and enforced", soc2:["CC1.4"], soc2_notes:"The entity holds individuals accountable for internal control responsibilities", pci:["12.7.1"], pci_notes:"Personnel policies include a requirement to acknowledge information security responsibilities", desc:"Requires confidentiality agreements to protect organizational information." },
+  { id:"A.6.7",  name:"Remote Working",                          domain:"People", nist:["PR.AA-03","PR.PS-04"], nist_notes:"Remote access managed; logs are created, protected, retained and analyzed", soc2:["CC6.6","CC6.7"], soc2_notes:"Logical access security measures restrict access through external networks; data transmission protected", pci:["12.3.3"], pci_notes:"Hardware and software technologies are reviewed and confirmed to address evolving threats", desc:"Protects information accessed, processed or stored by remote workers." },
+  { id:"A.6.8",  name:"Information Security Event Reporting",    domain:"People", nist:["DE.AE-03","RS.CO-02"], nist_notes:"Event data are aggregated and correlated; internal reporting requirements established", soc2:["CC7.3","CC7.4"], soc2_notes:"Detected security events are evaluated to determine response actions", pci:["12.10.1","12.10.2"], pci_notes:"Incident response plan includes procedures for responding to system breaches", desc:"Requires personnel to report security events through appropriate channels." },
+
+  // PHYSICAL CONTROLS (A.7)
+  { id:"A.7.1",  name:"Physical Security Perimeters",            domain:"Physical", nist:["PR.AC-02"], nist_notes:"Physical access to assets is managed and protected", soc2:["CC6.4"], soc2_notes:"Physical access to facilities and protected information assets is restricted", pci:["9.1.1","9.1.2","9.1.3"], pci_notes:"All individual physical access to sensitive areas is monitored and authorized", desc:"Defines and implements physical security perimeters around sensitive areas." },
+  { id:"A.7.2",  name:"Physical Entry Controls",                 domain:"Physical", nist:["PR.AC-02"], nist_notes:"Physical access to assets is managed and protected", soc2:["CC6.4"], soc2_notes:"Physical access to sensitive areas is restricted to authorized personnel only", pci:["9.2.1","9.2.2","9.3.1"], pci_notes:"Individual physical access to sensitive areas is authorized and entry controls implemented", desc:"Controls physical access to secure areas to authorized personnel only." },
+  { id:"A.7.3",  name:"Securing Offices, Rooms & Facilities",    domain:"Physical", nist:["PR.AC-02"], nist_notes:"Physical access to assets is managed and protected", soc2:["CC6.4"], soc2_notes:"Physical access to facilities and protected information assets is restricted", pci:["9.1.3"], pci_notes:"Physical access to wireless access points, gateways, networking/communications hardware is restricted", desc:"Designs and implements physical security for offices and facilities." },
+  { id:"A.7.4",  name:"Physical Security Monitoring",            domain:"Physical", nist:["DE.CM-02"], nist_notes:"The physical environment is monitored to find potentially adverse events", soc2:["CC6.4","CC7.2"], soc2_notes:"Physical access to facilities is monitored; system events are monitored to detect threats", pci:["9.4.1","9.4.2"], pci_notes:"All access to the cardholder data environment is monitored using a physical access control system", desc:"Continuously monitors physical premises to detect unauthorized access." },
+  { id:"A.7.5",  name:"Protecting Against Physical Threats",     domain:"Physical", nist:["PR.AC-02"], nist_notes:"Physical access to assets is managed and protected", soc2:["A1.1"], soc2_notes:"Current processing capacity and usage are maintained and monitored", pci:["9.1.1"], pci_notes:"All physical access to sensitive areas is monitored, authorized and controlled", desc:"Implements controls to protect against physical and environmental threats." },
+  { id:"A.7.8",  name:"Equipment Siting & Protection",           domain:"Physical", nist:["PR.AC-02"], nist_notes:"Physical access to assets is managed and protected", soc2:["A1.1"], soc2_notes:"Environmental protections are in place and functioning", pci:["9.5.1"], pci_notes:"POI devices that capture payment card data are protected from tampering and substitution", desc:"Sites and protects equipment to reduce risks from environmental threats." },
+  { id:"A.7.9",  name:"Security of Assets Off-Premises",         domain:"Physical", nist:["PR.DS-01","PR.AC-02"], nist_notes:"Data-at-rest is protected; physical access to assets is managed", soc2:["CC6.4","CC6.7"], soc2_notes:"Physical access is restricted; transmission and removal of information is controlled", pci:["9.3.3"], pci_notes:"Media with cardholder data sent outside the facility is secured and the data is rendered unreadable", desc:"Secures assets that are used outside organizational premises." },
+  { id:"A.7.10", name:"Storage Media",                           domain:"Physical", nist:["PR.DS-01","PR.DS-04"], nist_notes:"Data-at-rest is protected; adequate capacity to ensure availability is maintained", soc2:["CC6.1","CC6.5"], soc2_notes:"Logical access security; the entity logically removes sensitive data when no longer required", pci:["9.4.1","9.4.2","9.4.3"], pci_notes:"All media with cardholder data is physically secured; classified, inventoried and destroyed when no longer needed", desc:"Manages and secures storage media throughout its lifecycle." },
+  { id:"A.7.14", name:"Secure Disposal or Re-Use of Equipment",  domain:"Physical", nist:["PR.DS-04","PR.DS-08"], nist_notes:"Adequate capacity is ensured; data is destroyed according to policy", soc2:["CC6.5"], soc2_notes:"The entity logically removes sensitive information and destroys it when no longer required", pci:["9.4.4","9.4.5"], pci_notes:"Electronic media containing cardholder data is destroyed when no longer needed for business or legal reasons", desc:"Ensures all data is removed before disposal or reuse of equipment." },
+
+  // TECHNOLOGICAL CONTROLS (A.8)
+  { id:"A.8.1",  name:"User Endpoint Devices",                   domain:"Technological", nist:["PR.AA-01","PR.PS-01"], nist_notes:"Identities and credentials issued; software, firmware, and hardware are hardened", soc2:["CC6.1","CC6.7"], soc2_notes:"Logical access security measures are implemented; transmission of information is controlled", pci:["1.3.1","6.3.3"], pci_notes:"Inbound and outbound traffic is restricted; all system components are protected from known vulnerabilities", desc:"Manages security for information stored, processed or accessed via endpoint devices." },
+  { id:"A.8.2",  name:"Privileged Access Rights",                domain:"Technological", nist:["PR.AA-05"], nist_notes:"Access to assets is managed, incorporating the principles of least privilege", soc2:["CC6.3"], soc2_notes:"Role-based access control is implemented; privilege access is limited and monitored", pci:["7.2.5","7.2.6","8.2.3"], pci_notes:"Privileged user IDs are managed; access to all system components is assigned based on least privileges", desc:"Controls the allocation and use of privileged access rights." },
+  { id:"A.8.3",  name:"Information Access Restriction",          domain:"Technological", nist:["PR.AA-05"], nist_notes:"Access to assets is managed consistent with risk, incorporating least privilege", soc2:["CC6.1","CC6.2","CC6.3"], soc2_notes:"Logical access security measures restrict access to information assets", pci:["7.2.1","7.2.2"], pci_notes:"All access to system components and cardholder data is restricted by business need to know", desc:"Restricts access to information and application systems based on access control policy." },
+  { id:"A.8.4",  name:"Access to Source Code",                   domain:"Technological", nist:["PR.AA-05","PR.DS-01"], nist_notes:"Access managed; data-at-rest is protected", soc2:["CC6.1","CC8.1"], soc2_notes:"Access security; the entity authorizes and controls changes to infrastructure and software", pci:["6.2.2","6.3.2"], pci_notes:"Bespoke and custom software developers are trained on secure coding techniques", desc:"Controls access to source code and related items." },
+  { id:"A.8.5",  name:"Secure Authentication",                   domain:"Technological", nist:["PR.AA-02"], nist_notes:"Identities are proven and bound to credentials, and asserted in interactions", soc2:["CC6.1","CC6.6"], soc2_notes:"Logical access security measures restrict access; controls implemented to prevent unauthorized access from external sources", pci:["8.3.1","8.3.2","8.4.1","8.4.2"], pci_notes:"MFA is implemented for all non-console administrative access and access to the cardholder data environment", desc:"Implements secure log-on procedures to protect system access." },
+  { id:"A.8.6",  name:"Capacity Management",                     domain:"Technological", nist:["PR.DS-04"], nist_notes:"Adequate capacity to ensure availability is maintained", soc2:["A1.1","A1.2"], soc2_notes:"Current processing capacity and usage are maintained, monitored and evaluated", pci:["N/A"], pci_notes:"Not directly mapped — consider operational security requirements", desc:"Monitors and plans resource usage to meet capacity requirements." },
+  { id:"A.8.7",  name:"Protection Against Malware",              domain:"Technological", nist:["DE.CM-09","PR.PS-02"], nist_notes:"Computing hardware and software are monitored; software is maintained", soc2:["CC6.8"], soc2_notes:"Controls implemented to prevent or detect and act upon the introduction of unauthorized or malicious software", pci:["5.2.1","5.2.2","5.2.3","5.3.1"], pci_notes:"All system components are protected from malware using anti-malware software that is kept current", desc:"Protects against malicious code through detection and prevention controls." },
+  { id:"A.8.8",  name:"Management of Technical Vulnerabilities",  domain:"Technological", nist:["ID.RA-01","DE.CM-08"], nist_notes:"Vulnerabilities in assets are identified; vulnerabilities are identified and documented", soc2:["CC7.1","CC7.2"], soc2_notes:"Vulnerabilities of infrastructure components are identified; system events are monitored to detect threats", pci:["6.3.3","11.3.1","11.3.2"], pci_notes:"All system components are protected from known vulnerabilities; external and internal vulnerability scans are performed", desc:"Timely identification and remediation of technical vulnerabilities." },
+  { id:"A.8.9",  name:"Configuration Management",                domain:"Technological", nist:["PR.PS-01","ID.AM-02"], nist_notes:"Software, firmware and hardware are hardened; software is inventoried", soc2:["CC7.1"], soc2_notes:"The entity uses detection and monitoring procedures to identify changes to configurations", pci:["1.2.1","1.2.2","2.2.1"], pci_notes:"Configuration standards are developed, documented and implemented for all system components", desc:"Establishes, documents and monitors configurations of hardware, software and networks." },
+  { id:"A.8.10", name:"Information Deletion",                    domain:"Technological", nist:["PR.DS-04"], nist_notes:"Adequate capacity to ensure availability is maintained; data lifecycle managed", soc2:["CC6.5"], soc2_notes:"The entity logically removes sensitive information and destroys it when no longer required", pci:["3.2.1","3.3.1","3.3.2"], pci_notes:"Account data storage is minimized; SAD is not retained after authorization", desc:"Deletes information when no longer needed to prevent unnecessary exposure." },
+  { id:"A.8.11", name:"Data Masking",                            domain:"Technological", nist:["PR.DS-01"], nist_notes:"The confidentiality, integrity, and availability of data-at-rest is protected", soc2:["CC6.1"], soc2_notes:"Logical access security software and architectures are implemented", pci:["3.5.1"], pci_notes:"Primary account numbers are secured with strong cryptography wherever stored", desc:"Uses data masking in accordance with access control and business requirements." },
+  { id:"A.8.12", name:"Data Leakage Prevention",                 domain:"Technological", nist:["PR.DS-05"], nist_notes:"Protections against data leaks are implemented", soc2:["CC6.7"], soc2_notes:"The entity restricts the transmission, movement and removal of information", pci:["4.2.1","12.3.3"], pci_notes:"Strong cryptography is used to safeguard PAN during transmission; data protection technologies reviewed annually", desc:"Applies controls to prevent unauthorized disclosure of sensitive information." },
+  { id:"A.8.15", name:"Logging",                                 domain:"Technological", nist:["PR.PS-04","DE.AE-03"], nist_notes:"Logs are created, protected, retained and analyzed; event data are aggregated and correlated", soc2:["CC7.2"], soc2_notes:"System events are monitored, analyzed and reported to detect potential threats", pci:["10.2.1","10.3.1","10.3.2"], pci_notes:"Audit logs capture all individual user access, all actions taken by root or admin, access to audit trails", desc:"Produces, stores and reviews logs of relevant system events." },
+  { id:"A.8.16", name:"Monitoring Activities",                   domain:"Technological", nist:["DE.CM-01","DE.CM-09"], nist_notes:"Networks and network services are monitored; computing hardware and software are monitored", soc2:["CC7.2"], soc2_notes:"System events are monitored and analyzed", pci:["10.4.1","10.6.1","10.6.2"], pci_notes:"The following audit logs are reviewed at least once daily; audit logs are retained for at least 12 months", desc:"Monitors networks, systems and applications to detect anomalous behaviour." },
+  { id:"A.8.20", name:"Networks Security",                       domain:"Technological", nist:["PR.AA-04","DE.CM-01"], nist_notes:"Network access and network services are managed; networks are monitored", soc2:["CC6.6","CC6.7"], soc2_notes:"Logical access security measures control access through external networks; transmission is restricted", pci:["1.2.1","1.3.1","1.4.1"], pci_notes:"Network security controls are implemented; trusted and untrusted networks are separated", desc:"Manages and controls networks to protect information in systems and applications." },
+  { id:"A.8.21", name:"Security of Network Services",            domain:"Technological", nist:["GV.SC-04","PR.AA-04"], nist_notes:"Suppliers are identified and assessed; network access is managed", soc2:["CC9.2","CC6.6"], soc2_notes:"Vendors and partners are assessed; logical access through external networks is controlled", pci:["1.2.1","12.8.2"], pci_notes:"Network security controls are implemented; agreements with service providers include protection of cardholder data", desc:"Identifies, implements and monitors security mechanisms for network services." },
+  { id:"A.8.22", name:"Segregation of Networks",                 domain:"Technological", nist:["PR.AA-04"], nist_notes:"Network access and network services are managed to protect assets", soc2:["CC6.6"], soc2_notes:"Logical access security measures control access through external networks", pci:["1.3.1","1.3.2","1.4.1"], pci_notes:"Inbound and outbound traffic to the cardholder data environment is restricted; trusted and untrusted networks separated", desc:"Segregates groups of services, users, and systems on networks to reduce risk." },
+  { id:"A.8.23", name:"Web Filtering",                           domain:"Technological", nist:["PR.AA-04","DE.CM-09"], nist_notes:"Network access is managed; computing hardware and software are monitored", soc2:["CC6.6","CC6.8"], soc2_notes:"Logical access through external networks is controlled; unauthorized software introduction is prevented", pci:["1.4.3","6.3.3"], pci_notes:"Anti-spoofing measures are implemented; all system components are protected from known vulnerabilities", desc:"Manages access to external websites to reduce exposure to malicious content." },
+  { id:"A.8.24", name:"Use of Cryptography",                     domain:"Technological", nist:["PR.DS-01","PR.DS-02"], nist_notes:"Data-at-rest and data-in-transit is protected using cryptography", soc2:["CC6.1","CC6.7"], soc2_notes:"Logical access security architectures are implemented; transmission is protected", pci:["3.5.1","4.2.1","4.2.2"], pci_notes:"Strong cryptography is used to safeguard stored PAN and PAN during transmission", desc:"Defines and implements rules for the effective use of cryptographic controls." },
+  { id:"A.8.25", name:"Secure Development Lifecycle",            domain:"Technological", nist:["PV.PO-01","PV.PO-02"], nist_notes:"Policies and procedures are in place for software development; design considerations are included", soc2:["CC8.1"], soc2_notes:"The entity authorizes, designs, develops, tests and approves changes to infrastructure, software, and data", pci:["6.2.1","6.2.2","6.2.3"], pci_notes:"Bespoke and custom software are developed securely; developers trained; all software protected from common vulnerabilities", desc:"Establishes and applies rules for the secure development of software." },
+  { id:"A.8.26", name:"Application Security Requirements",       domain:"Technological", nist:["PV.PO-02"], nist_notes:"Policies and procedures are in place to address software security design considerations", soc2:["CC8.1"], soc2_notes:"The entity considers risk when designing and implementing controls", pci:["6.2.1","6.2.4"], pci_notes:"All security policies and operational procedures for managing software are documented; secure coding techniques are used", desc:"Identifies and approves information security requirements when developing applications." },
+  { id:"A.8.27", name:"Secure System Architecture & Engineering", domain:"Technological", nist:["PV.PO-01","PV.PO-02"], nist_notes:"Secure development lifecycle policies are in place; design considerations are addressed", soc2:["CC8.1"], soc2_notes:"The entity authorizes, designs and implements controls with a focus on security", pci:["6.2.1","6.4.2","6.4.3"], pci_notes:"Bespoke and custom software are developed securely; web-facing applications are protected against attacks", desc:"Establishes and applies principles for engineering secure systems." },
+  { id:"A.8.28", name:"Secure Coding",                           domain:"Technological", nist:["PV.PO-02","PV.PO-03"], nist_notes:"Policies are in place for secure development; security testing is performed", soc2:["CC8.1"], soc2_notes:"The entity develops changes with a focus on security controls and testing", pci:["6.2.2","6.2.3","6.2.4"], pci_notes:"Developers of bespoke and custom software are trained; review processes are in place; all software is protected from common vulnerabilities", desc:"Applies secure coding principles to software development activities." },
+  { id:"A.8.29", name:"Security Testing in Development & Acceptance", domain:"Technological", nist:["PV.PO-03"], nist_notes:"Organizational cybersecurity practices are evaluated to determine if they are performing as intended", soc2:["CC8.1"], soc2_notes:"The entity tests infrastructure, software and processes and evaluates the results to confirm that controls work effectively", pci:["6.2.3","11.3.2"], pci_notes:"Bespoke and custom software are protected from common vulnerabilities; internal vulnerability scans are performed", desc:"Defines and carries out testing of security functionality during development." },
+  { id:"A.8.30", name:"Outsourced Development",                  domain:"Technological", nist:["GV.SC-08"], nist_notes:"Relevant cybersecurity requirements are included in contracts with suppliers and partners", soc2:["CC9.2"], soc2_notes:"The entity assesses and manages risks associated with vendors and business partners", pci:["6.2.2","12.8.2"], pci_notes:"Software developers are trained on current secure coding techniques; agreements include protection of cardholder data", desc:"Supervises and monitors outsourced system development activities." },
+  { id:"A.8.31", name:"Separation of Development, Test & Production", domain:"Technological", nist:["PR.PS-01","PV.PO-01"], nist_notes:"Software, firmware and hardware are hardened; policies are established for software development", soc2:["CC8.1"], soc2_notes:"The entity separates testing and production environments", pci:["6.4.1","6.4.2","6.4.3"], pci_notes:"Development and test environments are separate from production environments; payment page scripts are managed", desc:"Separates development, testing and production environments to reduce unauthorized access risk." },
+  { id:"A.8.32", name:"Change Management",                       domain:"Technological", nist:["PR.PS-03"], nist_notes:"Hardware is maintained to reduce the risk from vulnerabilities; configuration changes are managed", soc2:["CC8.1"], soc2_notes:"The entity authorizes, designs, develops, tests, approves and implements changes", pci:["6.5.1","6.5.2","6.5.3","6.5.4","6.5.5","6.5.6"], pci_notes:"All changes to system components in the production environment are made according to established change control procedures", desc:"Manages changes to information processing facilities and systems." },
+  { id:"A.8.33", name:"Test Information",                        domain:"Technological", nist:["PV.PO-01","PR.DS-01"], nist_notes:"Policies in place for software development; data-at-rest is protected", soc2:["CC8.1"], soc2_notes:"The entity considers data handling when testing changes to infrastructure, data and software", pci:["6.4.1"], pci_notes:"Test and development environments are separate from the production environment", desc:"Ensures test data is appropriately selected, protected and managed." },
+  { id:"A.8.34", name:"Protection of Information Systems During Audit Testing", domain:"Technological", nist:["PR.AA-05","DE.AE-03"], nist_notes:"Access permissions are managed during testing; audit activities are managed", soc2:["CC7.2"], soc2_notes:"System events during audit testing are monitored to detect threats", pci:["11.3.1","11.3.2"], pci_notes:"External and internal vulnerability scans are performed by qualified personnel", desc:"Plans and manages audit activities involving operational systems to minimize disruption." },
+
+  // ADDITIONAL ORGANIZATIONAL
+  { id:"A.5.21", name:"Managing Information Security in ICT Supply Chain", domain:"Organizational", nist:["GV.SC-01","GV.SC-04","GV.SC-08"], nist_notes:"A cybersecurity supply chain risk management program is established; suppliers are assessed; cybersecurity requirements are in contracts", soc2:["CC9.2"], soc2_notes:"The entity assesses and manages risks associated with vendors and business partners who have access to data", pci:["12.8.5"], pci_notes:"Information is maintained about which PCI DSS requirements are managed by each TPSP and those managed by entity", desc:"Defines processes to manage security risks associated with the ICT supply chain." },
+  { id:"A.5.22", name:"Monitoring, Review & Change Management of Supplier Services", domain:"Organizational", nist:["GV.SC-07"], nist_notes:"The risks posed by suppliers and partners over the life of a relationship are managed", soc2:["CC9.2"], soc2_notes:"The entity monitors compliance of vendors and business partners with established requirements", pci:["12.8.4","12.8.5"], pci_notes:"An annual program is in place to monitor PCI DSS compliance of TPSPs", desc:"Regularly monitors, reviews and manages changes to supplier services." },
+  { id:"A.5.23", name:"Information Security for Use of Cloud Services", domain:"Organizational", nist:["GV.SC-04","GV.SC-08"], nist_notes:"Suppliers are identified and assessed; cybersecurity requirements in contracts with cloud providers", soc2:["CC9.2"], soc2_notes:"The entity assesses and manages risks associated with cloud service providers", pci:["12.8.1","12.8.2"], pci_notes:"List of all TPSPs maintained; written agreements with cloud providers include acknowledgement to protect cardholder data", desc:"Establishes processes for acquiring, using, managing and exiting cloud services." },
+  { id:"A.5.24", name:"Information Security Incident Management Planning & Preparation", domain:"Organizational", nist:["RS.RP-01","RS.MA-01"], nist_notes:"Incident response plan is executed; incidents are categorized and classified", soc2:["CC7.3","CC7.4"], soc2_notes:"Detected security incidents are evaluated to determine the response action; incidents are addressed", pci:["12.10.1","12.10.3"], pci_notes:"Incident response plan exists and is ready to be activated in the event of a suspected breach", desc:"Plans and prepares for managing information security incidents." },
+  { id:"A.5.25", name:"Assessment & Decision on Information Security Events", domain:"Organizational", nist:["RS.MA-02"], nist_notes:"Incidents are validated and prioritized", soc2:["CC7.3"], soc2_notes:"Detected security incidents are evaluated to determine the response action", pci:["12.10.2"], pci_notes:"Incident response procedures include assessment of alerts and suspected/confirmed incidents", desc:"Assesses information security events and decides if they are to be classified as incidents." },
+  { id:"A.5.26", name:"Response to Information Security Incidents", domain:"Organizational", nist:["RS.MA-03","RS.CO-03"], nist_notes:"Incidents are managed consistent with objectives; information is shared consistent with plans", soc2:["CC7.4"], soc2_notes:"Security incidents are addressed, contained, remediated, and communicated", pci:["12.10.4","12.10.5"], pci_notes:"Incident response plan personnel are appropriately trained; plan is tested at least once per year", desc:"Responds to information security incidents according to documented procedures." },
+  { id:"A.5.27", name:"Learning from Information Security Incidents", domain:"Organizational", nist:["RS.IM-02","RC.IM-01"], nist_notes:"Incident response activities are improved by incorporating lessons learned; recovery plans include lessons learned", soc2:["CC7.4"], soc2_notes:"The incident response team communicates and evaluates improvements based on lessons learned", pci:["12.10.6"], pci_notes:"Incident response plan is reviewed and updated as needed following changes in environment", desc:"Uses knowledge gained from incidents to reduce future risks." },
+  { id:"A.5.28", name:"Collection of Evidence",                  domain:"Organizational", nist:["RS.MA-03"], nist_notes:"Incidents are managed and contained; forensic evidence is collected and preserved", soc2:["CC7.4"], soc2_notes:"Root cause of security incidents is determined and addressed; evidence retained as needed", pci:["12.10.1"], pci_notes:"Incident response plan includes preservation of evidence and legal requirements for investigations", desc:"Establishes and applies procedures for identifying and collecting evidence." },
+  { id:"A.5.31", name:"Legal, Statutory, Regulatory & Contractual Requirements", domain:"Organizational", nist:["GV.PO-01","ID.GV-03"], nist_notes:"Organizational cybersecurity policy is established; legal, regulatory and contractual cybersecurity obligations are understood", soc2:["CC1.4","CC2.1"], soc2_notes:"Board demonstrates commitment; COSO principle: the organization obtains and uses relevant information", pci:["12.1.1"], pci_notes:"Comprehensive security policy addresses all PCI DSS requirements", desc:"Identifies and documents all relevant legal, regulatory and contractual requirements." },
+  { id:"A.5.32", name:"Intellectual Property Rights",            domain:"Organizational", nist:["GV.PO-01"], nist_notes:"Organizational cybersecurity policy is established and communicated", soc2:["CC1.4"], soc2_notes:"Board demonstrates commitment to competence and ethical values", pci:["6.3.2","6.2.2"], pci_notes:"Software inventory is maintained; developers trained on secure coding to include IPR considerations", desc:"Implements procedures to protect intellectual property rights." },
+  { id:"A.5.33", name:"Protection of Records",                   domain:"Organizational", nist:["PR.DS-01","PR.DS-04"], nist_notes:"Data-at-rest is protected; adequate capacity and availability of records is maintained", soc2:["CC6.1"], soc2_notes:"Logical access security measures restrict access to information assets including records", pci:["10.5.1","10.7.1"], pci_notes:"Retain audit logs for at least 12 months; failures in security controls are detected and reported", desc:"Protects records from loss, destruction, falsification and unauthorized access." },
+  { id:"A.5.34", name:"Privacy & Protection of PII",             domain:"Organizational", nist:["GV.PO-01","ID.GV-03"], nist_notes:"Policy established; legal and regulatory obligations including privacy are understood", soc2:["P1.1","P2.1","P3.1","P4.1"], soc2_notes:"Privacy notice is provided; choices are offered; collection limited to relevant info; use, retention and disposal of personal info managed", pci:["N/A"], pci_notes:"Not directly mapped — PCI focuses on cardholder data not general PII. Consider GDPR/CCPA separately", desc:"Ensures privacy and protection of personally identifiable information as required." },
+  { id:"A.5.35", name:"Independent Review of Information Security", domain:"Organizational", nist:["ID.IM-03","GV.OC-01"], nist_notes:"Improvements to organizational cybersecurity risk management are identified; organizational requirements are understood", soc2:["CC4.2"], soc2_notes:"The entity evaluates and communicates deficiencies in a timely manner to responsible parties", pci:["11.3.1","12.4.2"], nist_notes:"Vulnerabilities are identified through external scans; executive management reviews quarterly", desc:"Reviews the organization's approach to information security independently." },
+  { id:"A.5.36", name:"Compliance with Policies & Standards",    domain:"Organizational", nist:["ID.IM-03","GV.PO-02"], nist_notes:"Improvements are identified from policy compliance reviews; roles coordinated across organization", soc2:["CC4.1"], soc2_notes:"The entity selects, develops and performs ongoing evaluations to determine whether controls are present and functioning", pci:["12.4.2"], pci_notes:"Reviews are performed at least once every three months to confirm personnel are following security policies", desc:"Regularly reviews compliance with information security policy and standards." },
+  { id:"A.5.37", name:"Documented Operating Procedures",         domain:"Organizational", nist:["PR.PS-01","GV.PO-01"], nist_notes:"Software, firmware and hardware are managed; policy is established and communicated", soc2:["CC2.2"], soc2_notes:"The entity internally communicates objectives and the responsibilities required to achieve them", pci:["12.1.1"], pci_notes:"All security policies and operational procedures are documented, in use and known to all affected parties", desc:"Maintains and makes available documented operating procedures for all users." },
+
+  // MORE TECHNOLOGICAL
+  { id:"A.8.13", name:"Information Backup",                      domain:"Technological", nist:["PR.DS-04","PR.IP-04"], nist_notes:"Adequate capacity to ensure availability is maintained; backups are conducted, maintained and tested", soc2:["A1.2","A1.3"], soc2_notes:"Environmental protections and software backup and recovery processes are in place and functioning", pci:["12.3.4"], pci_notes:"Hardware and software technologies are reviewed at least once every 12 months; data backup and restoration is verified", desc:"Maintains and tests backup copies of information, software and systems." },
+  { id:"A.8.14", name:"Redundancy of Information Processing Facilities", domain:"Technological", nist:["PR.DS-04"], nist_notes:"Adequate capacity to ensure availability is maintained through redundancy", soc2:["A1.1","A1.2"], soc2_notes:"Current processing capacity and usage are maintained; environmental and software backup processes are in place", pci:["N/A"], pci_notes:"Not directly mapped — consider as part of business continuity and availability controls", desc:"Implements sufficient redundancy to meet availability requirements." },
+  { id:"A.8.17", name:"Clock Synchronisation",                   domain:"Technological", nist:["PR.PS-04","DE.AE-03"], nist_notes:"Logs are created, protected and retained; event data are aggregated for analysis", soc2:["CC7.2"], soc2_notes:"System events are monitored; accurate timestamps are essential for effective monitoring", pci:["10.6.1","10.6.2","10.6.3"], pci_notes:"Internal clocks of all systems are synchronized using time-synchronization technology (NTP)", desc:"Synchronizes clocks of all relevant information processing systems." },
+  { id:"A.8.18", name:"Use of Privileged Utility Programs",      domain:"Technological", nist:["PR.AA-05"], nist_notes:"Access to assets is managed, incorporating the principles of least privilege", soc2:["CC6.3"], soc2_notes:"Role-based access control is implemented; access is appropriately provisioned based on role", pci:["7.2.5","7.2.6"], pci_notes:"All access by privileged user accounts is managed and assigned based on least privileges", desc:"Controls and restricts the use of utility programs that can override security controls." },
+  { id:"A.8.19", name:"Installation of Software on Operational Systems", domain:"Technological", nist:["PR.PS-01","PR.PS-02"], nist_notes:"Software, firmware and hardware are hardened; software is maintained", soc2:["CC8.1","CC6.8"], soc2_notes:"The entity authorizes, designs, develops and implements changes; unauthorized software is prevented", pci:["6.3.3","6.5.2"], pci_notes:"All system components are protected from known vulnerabilities; changes to system components include testing and approval", desc:"Manages and controls software installation on operational systems." },
+];
+
+// --- RENDER ---
+let activeFilter = 'all';
+let searchTerm = '';
+let domainFilter = '';
+let expandedRow = null;
+
+function highlight(text, term) {
+  if (!term) return text;
+  const regex = new RegExp(`(${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+  return text.replace(regex, '<mark>$1</mark>');
+}
+
+function renderTable() {
+  const tbody = document.getElementById('tableBody');
+  const empty = document.getElementById('emptyState');
+  const countDisplay = document.getElementById('countDisplay');
+
+  let filtered = controls.filter(c => {
+    const matchDomain = !domainFilter || c.domain === domainFilter;
+    const matchSearch = !searchTerm ||
+      c.id.toLowerCase().includes(searchTerm) ||
+      c.name.toLowerCase().includes(searchTerm) ||
+      c.domain.toLowerCase().includes(searchTerm) ||
+      c.nist.join(' ').toLowerCase().includes(searchTerm) ||
+      c.soc2.join(' ').toLowerCase().includes(searchTerm) ||
+      c.pci.join(' ').toLowerCase().includes(searchTerm) ||
+      c.desc.toLowerCase().includes(searchTerm);
+    const matchFw = activeFilter === 'all' ||
+      (activeFilter === 'nist' && c.nist.length) ||
+      (activeFilter === 'soc2' && c.soc2.length) ||
+      (activeFilter === 'pci' && !c.pci.includes('N/A'));
+    return matchDomain && matchSearch && matchFw;
+  });
+
+  countDisplay.innerHTML = `<span>${filtered.length}</span> of ${controls.length}`;
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  tbody.innerHTML = filtered.map(c => {
+    const isExpanded = expandedRow === c.id;
+    return `
+    <tr class="${isExpanded ? 'expanded' : ''}" onclick="toggleExpand('${c.id}')">
+      <td>${highlight(c.id, searchTerm)}</td>
+      <td>
+        <div class="control-name">${highlight(c.name, searchTerm)}</div>
+        <div class="control-domain">${c.domain} Controls</div>
+      </td>
+      <td>
+        <div class="fw-cell">
+          ${c.nist.map(n => `<span class="fw-tag nist">${highlight(n, searchTerm)}</span>`).join('')}
+        </div>
+      </td>
+      <td>
+        <div class="fw-cell">
+          ${c.soc2.map(s => `<span class="fw-tag soc2">${highlight(s, searchTerm)}</span>`).join('')}
+        </div>
+      </td>
+      <td>
+        <div class="fw-cell">
+          ${c.pci[0] === 'N/A'
+            ? '<span class="fw-tag na">—</span>'
+            : c.pci.map(p => `<span class="fw-tag pci">${highlight(p, searchTerm)}</span>`).join('')
+          }
+        </div>
+      </td>
+    </tr>
+    <tr class="expand-row">
+      <td colspan="5">
+        <div class="expand-content ${isExpanded ? 'open' : ''}" id="expand-${c.id}">
+          <div class="expand-title">${c.name}</div>
+          <div class="expand-desc">${c.desc}</div>
+          <div class="expand-grid">
+            <div class="expand-card">
+              <div class="expand-card-title nist">🔵 NIST CSF 2.0</div>
+              <p><strong>${c.nist.join(', ')}</strong><br><br>${c.nist_notes}</p>
+            </div>
+            <div class="expand-card">
+              <div class="expand-card-title soc2">🟣 SOC 2 TSC</div>
+              <p><strong>${c.soc2.join(', ')}</strong><br><br>${c.soc2_notes}</p>
+            </div>
+            <div class="expand-card">
+              <div class="expand-card-title pci">🟡 PCI-DSS v4.0</div>
+              <p><strong>${c.pci.join(', ')}</strong><br><br>${c.pci_notes}</p>
+            </div>
+          </div>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function toggleExpand(id) {
+  expandedRow = expandedRow === id ? null : id;
+  renderTable();
+}
+
+document.getElementById('searchInput').addEventListener('input', e => {
+  searchTerm = e.target.value.toLowerCase().trim();
+  renderTable();
+});
+
+document.getElementById('domainFilter').addEventListener('change', e => {
+  domainFilter = e.target.value;
+  renderTable();
+});
+
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeFilter = btn.dataset.fw;
+    renderTable();
+  });
+});
+
+renderTable();
+</script>
+</body>
+</html>
